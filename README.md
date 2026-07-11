@@ -2,7 +2,7 @@
 
 > LLM output quality evaluator — deterministic checks, a calibration-gated LLM judge, and meta-evaluation ("judge the judge").
 
-**Status: 🚧 S1 — Architecture delivered.** Charter ([CLAUDE.md](CLAUDE.md)), [ADR-001](docs/adr/ADR-001-evaluation-model.md) accepted, Pydantic v2 contract models, policy constants, canonical scenario fixtures (PASS / FAIL / DEGRADED + human-labeled golden set), contract tests, zero-key CI. S2 (checkers, judge layer, meta-evaluation metrics) and S3 (CLI + CI gate + full README) follow.
+**Status: 🚧 S2 — Implementation delivered.** S1 shipped the charter ([CLAUDE.md](CLAUDE.md)), [ADR-001](docs/adr/ADR-001-evaluation-model.md), Pydantic v2 contract models, canonical fixtures and zero-key CI. S2 adds the three tiers themselves: deterministic checkers, the env-gated judge layer, meta-evaluation metrics, and the verdict engine — 105 tests, still zero API keys. S3 (CLI + CI gate + full README) follows.
 
 ## The idea in three tiers
 
@@ -19,6 +19,21 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -e .[dev]
 python -m pytest        # zero API keys required
+```
+
+## Project structure
+
+```
+src/evalforge/
+  models.py     # Pydantic v2 contract models; ADR-001 invariants enforced in-model
+  policy.py     # every ADR-001 number, single source
+  checkers.py   # Tier 1 deterministic checks (json_structure, contains, regex, length, forbidden)
+  judge.py      # Tier 2 env-gated LLM judge (LLMClient/Judge Protocols, Anthropic impl, FakeJudge)
+  metrics.py    # Tier 3 meta-evaluation (exact/adjacent agreement, Cohen's kappa, self-consistency, calibrate)
+  evaluator.py  # verdict engine: blocking gates -> calibration-gated score -> PASS/DEGRADED/FAIL
+data/samples/   # canonical scenarios (PASS / FAIL / DEGRADED) + human-labeled golden set
+docs/adr/       # architecture decision records
+tests/          # 105 tests: contracts, checkers, judge parsing, metrics, end-to-end verdicts
 ```
 
 ## Portfolio context

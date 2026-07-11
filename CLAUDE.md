@@ -5,8 +5,9 @@
 
 ## Project State — READ FIRST
 
-- **Status: 🚧 S1 — Architecture (this branch).** S2 (implementation) and S3 (integration) follow.
-- S1 delivers: this charter, ADR-001 accepted (three-tier evaluation model, calibration-gated judge), Pydantic v2 models, policy constants module, canonical scenario fixtures (PASS / FAIL / DEGRADED + golden set), contract tests, zero-key CI.
+- **Status: 🚧 S2 — Implementation (this branch).** S3 (integration) follows.
+- S1 delivered (PR #1, 2026-07-11): this charter, ADR-001 accepted (three-tier evaluation model, calibration-gated judge), Pydantic v2 models, policy constants module, canonical scenario fixtures (PASS / FAIL / DEGRADED + golden set), 53 contract tests, zero-key CI.
+- S2 delivers: Tier 1 deterministic checkers, Tier 2 judge layer (`LLMClient`/`Judge` Protocols, `AnthropicClient` + `LLMJudge` reference impl, scripted `FakeJudge`), Tier 3 meta-evaluation (exact/adjacent agreement, Cohen's kappa, self-consistency, `calibrate`), and the verdict engine (`evaluate_suite`) enforcing ADR-001 end-to-end. Suite: 105 tests, zero API keys; the canonical scenario manifests are now pinned by the evaluator itself.
 - Work discipline: **small, session-scoped increments** — one concern per session, plan validated before code, feature branch + PR to `main`.
 
 ## Project Goal
