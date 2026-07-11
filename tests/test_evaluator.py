@@ -215,3 +215,5 @@ def test_no_checks_with_calibrated_judge_scores_judge_only():
     assert report.score == 1.0
     assert report.verdict is Verdict.PASS
     assert any("judge-only" in c for c in report.conditions)
+    # None, deliberately distinct from 0.0 ("every check failed") -- bug-evidence #1.
+    assert report.deterministic_score is None

@@ -284,7 +284,9 @@ class SuiteReport(BaseModel):
     suite_name: str = Field(min_length=1)
     verdict: Verdict
     score: float = Field(ge=0.0, le=1.0)
-    deterministic_score: float = Field(ge=0.0, le=1.0)
+    # None means "no checks defined" (judge-only suite) -- deliberately
+    # distinct from 0.0, which means every declared check failed.
+    deterministic_score: float | None = Field(default=None, ge=0.0, le=1.0)
     judge_score: float | None = Field(default=None, ge=0.0, le=1.0)
     calibration: CalibrationReport | None = None
     conditions: list[str] = Field(default_factory=list)

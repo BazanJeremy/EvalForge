@@ -114,7 +114,7 @@ def evaluate_suite(
         score=round(score, 6),
         deterministic_score=round(deterministic_score, 6)
         if deterministic_score is not None
-        else 0.0,
+        else None,
         judge_score=round(judge_quality, 6) if judge_quality is not None else None,
         calibration=calibration if judge_counted else None,
         conditions=conditions,

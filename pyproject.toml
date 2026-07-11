@@ -18,6 +18,9 @@ dependencies = [
 llm = ["anthropic>=0.40"]
 dev = ["pytest>=8.0", "coverage>=7.6"]
 
+[project.scripts]
+evalforge = "evalforge.cli:main"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 

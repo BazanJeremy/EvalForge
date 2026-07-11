@@ -19,3 +19,22 @@ jobs:
         run: |
           coverage run -m pytest --junitxml=reports/junit.xml
           coverage xml
+      - name: Gate - canonical scenarios must produce their declared exit codes
+        run: |
+          status=0
+          {
+            echo "## EvalForge canonical-scenario gate"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          for dir in data/samples/scenario_*; do
+            name=$(basename "$dir")
+            want=$(python -c "import json; print(json.load(open('$dir/manifest.json'))['expected_exit'])")
+            got=0
+            evalforge run --suite "$dir/suite.json" --outputs "$dir/outputs.jsonl" > /dev/null || got=$?
+            line="$name: exit $got (expected $want)"
+            echo "$line"
+            echo "$line" >> "$GITHUB_STEP_SUMMARY"
+            if [ "$got" -ne "$want" ]; then status=1; fi
+          done
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          exit $status
