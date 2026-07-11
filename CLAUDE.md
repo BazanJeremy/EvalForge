@@ -5,9 +5,11 @@
 
 ## Project State — READ FIRST
 
-- **Status: 🚧 S2 — Implementation (this branch).** S3 (integration) follows.
-- S1 delivered (PR #1, 2026-07-11): this charter, ADR-001 accepted (three-tier evaluation model, calibration-gated judge), Pydantic v2 models, policy constants module, canonical scenario fixtures (PASS / FAIL / DEGRADED + golden set), 53 contract tests, zero-key CI.
-- S2 delivers: Tier 1 deterministic checkers, Tier 2 judge layer (`LLMClient`/`Judge` Protocols, `AnthropicClient` + `LLMJudge` reference impl, scripted `FakeJudge`), Tier 3 meta-evaluation (exact/adjacent agreement, Cohen's kappa, self-consistency, `calibrate`), and the verdict engine (`evaluate_suite`) enforcing ADR-001 end-to-end. Suite: 105 tests, zero API keys; the canonical scenario manifests are now pinned by the evaluator itself.
+- **Status: ✅ COMPLETE — all three sprints delivered (2026-07-11).**
+- S1 (PR #1): this charter, ADR-001 accepted (three-tier evaluation model, calibration-gated judge), Pydantic v2 models, policy constants module, canonical scenario fixtures (PASS / FAIL / DEGRADED + golden set), 53 contract tests, zero-key CI.
+- S2 (PR #2): Tier 1 deterministic checkers, Tier 2 judge layer (`LLMClient`/`Judge` Protocols, `AnthropicClient` + `LLMJudge` reference impl, scripted `FakeJudge`), Tier 3 meta-evaluation (exact/adjacent agreement, Cohen's kappa, self-consistency, `calibrate`), verdict engine enforcing ADR-001 end-to-end. 105 tests.
+- S3 (PR #3): ADR-002 accepted (CLI contract — verdict-mapped exit codes 0/1/2/3, usage errors moved off argparse's 2 to avoid the FAIL collision, calibration as an explicit step and durable artifact, no tuning flags), `evalforge run` / `evalforge calibrate` CLI, CI canonical-scenario gate (the pipeline executes the installed binary against the committed manifests), senior README, bug-evidence log (#1: nullable `deterministic_score`). Suite: 121 tests, zero API keys.
+- Any future work follows the same discipline: **small, session-scoped increments** — one concern per session, plan validated before code, feature branch + PR to `main`.
 - Work discipline: **small, session-scoped increments** — one concern per session, plan validated before code, feature branch + PR to `main`.
 
 ## Project Goal
@@ -51,7 +53,7 @@ Differentiating skills vs P1–P5: **evaluating probabilistic outputs and quanti
 - Run tests with: `python -m pytest` — **NEVER** bare `pytest`
 - CI: GitHub Actions (free tier), zero API keys, no Docker
 - Console output ASCII-only (legacy Windows consoles garble non-ASCII)
-- No `[project.scripts]` entry until the CLI exists (S3) — a dangling entry point breaks `pip install -e .`
+- After changing `[project.scripts]`, re-run `pip install -e .` to refresh the console-script shim
 
 ## Conventions
 
