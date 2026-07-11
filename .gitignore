@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+
+# Tooling (anchored to root — data/samples/ fixtures must stay trackable)
+.pytest_cache/
+/.coverage
+/coverage.xml
+htmlcov/
+reports/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

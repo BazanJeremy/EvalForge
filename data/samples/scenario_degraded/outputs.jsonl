@@ -1,0 +1,3 @@
+{"case_id": "BR-001", "output": "{\"title\": \"Alarm issue\", \"severity\": \"unknown\", \"reproduction_steps\": [\"It does not work\"]}", "source": "testscribe-demo"}
+{"case_id": "BR-002", "output": "{\"title\": \"Button broken\", \"severity\": \"medium\", \"reproduction_steps\": [\"Click login\", \"It is broken\"]}", "source": "testscribe-demo"}
+{"case_id": "BR-003", "output": "{\"title\": \"Duplicate entries\", \"severity\": \"low\", \"reproduction_steps\": [\"Open the list\", \"There are duplicates\"]}", "source": "testscribe-demo"}

@@ -1,0 +1,6 @@
+{
+  "name": "scenario_degraded",
+  "expected_verdict": "DEGRADED",
+  "expected_exit": 1,
+  "notes": "Every blocking check passes, so FAIL is impossible by construction. Thin outputs fail non-blocking contains/length checks (5 of 12 checks fail): the deterministic pass rate lands below PASS_THRESHOLD, and with the judge absent the verdict is DEGRADED."
+}

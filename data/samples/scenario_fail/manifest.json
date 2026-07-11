@@ -1,0 +1,6 @@
+{
+  "name": "scenario_fail",
+  "expected_verdict": "FAIL",
+  "expected_exit": 2,
+  "notes": "BR-002's output is truncated JSON: its blocking json_structure check must force FAIL regardless of the other cases' quality (ADR-001 non-compensability)."
+}

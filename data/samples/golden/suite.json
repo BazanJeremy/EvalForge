@@ -1,0 +1,25 @@
+{
+  "name": "bug-enrichment-golden",
+  "description": "Golden set for Tier 3 judge calibration: twelve enriched bug reports of deliberately varied quality, each with a human overall score in labels.json. No deterministic checks: this set exists to measure judge-vs-human agreement, not to gate outputs.",
+  "rubric": {
+    "criteria": [
+      {"name": "correctness", "description": "Severity and reproduction steps match the defect actually described in the raw report."},
+      {"name": "completeness", "description": "Title, severity, and reproduction steps are all populated with usable content."},
+      {"name": "clarity", "description": "Reproduction steps are unambiguous and follow Given/When/Then form."}
+    ]
+  },
+  "cases": [
+    {"id": "G-01", "input": "Raw bug report: The infusion pump alarm doesn't sound when the IV line is blocked."},
+    {"id": "G-02", "input": "Raw bug report: Card payments time out after 30 seconds during checkout."},
+    {"id": "G-03", "input": "Raw bug report: CSV export mangles accented characters."},
+    {"id": "G-04", "input": "Raw bug report: Session expires while filling the claim form and everything typed is lost."},
+    {"id": "G-05", "input": "Raw bug report: App crashes when uploading a photo from the gallery."},
+    {"id": "G-06", "input": "Raw bug report: Text is unreadable in dark mode on the settings page."},
+    {"id": "G-07", "input": "Raw bug report: Calendar sync with Outlook stops working randomly."},
+    {"id": "G-08", "input": "Raw bug report: The export button is greyed out for read-only users."},
+    {"id": "G-09", "input": "Raw bug report: Push notifications arrive twice on Android 15."},
+    {"id": "G-10", "input": "Raw bug report: Valid 2FA codes are rejected right after a password change."},
+    {"id": "G-11", "input": "Raw bug report: Invoice PDF shows the wrong total when a discount is applied."},
+    {"id": "G-12", "input": "Raw bug report: The map widget is blank on the branch locator page."}
+  ]
+}
