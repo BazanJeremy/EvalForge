@@ -1,0 +1,16 @@
+{
+  "labels": [
+    {"case_id": "G-01", "score": 5, "notes": "Complete, correct critical severity, well-formed Given/When/Then steps."},
+    {"case_id": "G-02", "score": 5, "notes": "Complete and precise; severity and steps match the defect."},
+    {"case_id": "G-03", "score": 4, "notes": "Good enrichment; encoding detail (UTF-8 vs latin-1) missing from the steps."},
+    {"case_id": "G-04", "score": 4, "notes": "Solid steps; severity arguably high rather than medium given the data loss."},
+    {"case_id": "G-05", "score": 3, "notes": "Usable but steps are not Given/When/Then and lack device context."},
+    {"case_id": "G-06", "score": 3, "notes": "Correct but generic; 'some text' does not identify the affected elements."},
+    {"case_id": "G-07", "score": 2, "notes": "Thin: no trigger, no expected behavior, severity left unresolved."},
+    {"case_id": "G-08", "score": 2, "notes": "Title restates the input; single vague step; possibly intended behavior, not probed."},
+    {"case_id": "G-09", "score": 1, "notes": "Empty severity and steps; unusable as a defect ticket."},
+    {"case_id": "G-10", "score": 1, "notes": "Misdiagnoses the defect as user error; wrong severity; no reproduction."},
+    {"case_id": "G-11", "score": 4, "notes": "Complete; could name which total (net or gross) is wrong."},
+    {"case_id": "G-12", "score": 2, "notes": "Severity unjustified; steps lack the page name and environment."}
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "name": "scenario_pass",
+  "expected_verdict": "PASS",
+  "expected_exit": 0,
+  "notes": "All blocking and non-blocking checks pass. With the judge absent (zero-key run), weights renormalize to deterministic-only and the score reaches 1.0 with a 'judge unavailable' condition."
+}

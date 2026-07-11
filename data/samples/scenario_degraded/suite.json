@@ -1,0 +1,43 @@
+{
+  "name": "bug-enrichment-degraded",
+  "description": "Canonical DEGRADED scenario: identical suite to scenario_pass, but thin candidate outputs fail non-blocking contains/length checks while every blocking check passes.",
+  "rubric": {
+    "criteria": [
+      {"name": "correctness", "description": "Severity and reproduction steps match the defect actually described in the raw report."},
+      {"name": "completeness", "description": "Title, severity, and reproduction steps are all populated with usable content."},
+      {"name": "clarity", "description": "Reproduction steps are unambiguous and follow Given/When/Then form."}
+    ]
+  },
+  "cases": [
+    {
+      "id": "BR-001",
+      "input": "Raw bug report: The infusion pump alarm doesn't sound when the IV line is blocked.",
+      "checks": [
+        {"type": "json_structure", "required_keys": ["title", "severity", "reproduction_steps"], "blocking": true},
+        {"type": "forbidden", "values": ["as an ai", "lorem ipsum"], "blocking": true},
+        {"type": "contains", "value": "alarm"},
+        {"type": "length", "min_chars": 120, "max_chars": 2000}
+      ]
+    },
+    {
+      "id": "BR-002",
+      "input": "Raw bug report: Login button does nothing on Firefox after a password reset.",
+      "checks": [
+        {"type": "json_structure", "required_keys": ["title", "severity", "reproduction_steps"], "blocking": true},
+        {"type": "forbidden", "values": ["as an ai", "lorem ipsum"], "blocking": true},
+        {"type": "contains", "value": "firefox"},
+        {"type": "length", "min_chars": 120, "max_chars": 2000}
+      ]
+    },
+    {
+      "id": "BR-003",
+      "input": "Raw bug report: Search results duplicate every third entry when paginating.",
+      "checks": [
+        {"type": "json_structure", "required_keys": ["title", "severity", "reproduction_steps"], "blocking": true},
+        {"type": "forbidden", "values": ["as an ai", "lorem ipsum"], "blocking": true},
+        {"type": "contains", "value": "search"},
+        {"type": "length", "min_chars": 120, "max_chars": 2000}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "name": "golden",
+  "purpose": "calibration",
+  "notes": "Human-labeled cases for Tier 3 judge calibration (evalforge calibrate, S3). Scores deliberately span the full 1-5 scale so agreement metrics (exact, adjacent, Cohen's kappa) are meaningful. Size >= MIN_GOLDEN_CASES."
+}
