@@ -1,8 +1,13 @@
 # EvalForge
 
-*Version française : [README.md](README.md)*
+**LLM output quality evaluator — deterministic checks, a calibration-gated LLM judge, and meta-evaluation ("judge the judge").**
 
-> LLM output quality evaluator — deterministic checks, a calibration-gated LLM judge, and meta-evaluation ("judge the judge").
+[![CI](https://github.com/BazanJeremy/EvalForge/actions/workflows/ci.yml/badge.svg)](https://github.com/BazanJeremy/EvalForge/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/tests-121%20passing-brightgreen?logo=pytest)](tests/)
+[![Python](https://img.shields.io/badge/python-3.12%2B-blue?logo=python)](pyproject.toml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
+
+> 🇫🇷 [Version française](README.md)
 
 **Status: ✅ Complete.** Portfolio project P6 of a 6-project AI Test Engineering portfolio — the final capstone. 121 tests, zero API keys required, CI gated by its own canonical scenarios (see [The CI gate](#the-ci-gate-this-repo-checks-its-own-contract)).
 

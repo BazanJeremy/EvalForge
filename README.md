@@ -1,8 +1,13 @@
 # EvalForge
 
-*English version: [README.en.md](README.en.md)*
+**Quality gate pour systèmes LLM — checks déterministes, juge LLM sous calibration, et méta-évaluation qui « juge le juge ».**
 
-> Quality gate pour systèmes LLM — checks déterministes, juge LLM sous calibration, et méta-évaluation qui « juge le juge ».
+[![CI](https://github.com/BazanJeremy/EvalForge/actions/workflows/ci.yml/badge.svg)](https://github.com/BazanJeremy/EvalForge/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/tests-121%20passing-brightgreen?logo=pytest)](tests/)
+[![Python](https://img.shields.io/badge/python-3.12%2B-blue?logo=python)](pyproject.toml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
+
+> 🇬🇧 [English version](README.en.md)
 
 Trois rapports de bug enrichis par un LLM, évalués en une commande :
 
