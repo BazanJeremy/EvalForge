@@ -148,6 +148,19 @@ Un outil au périmètre volontairement réduit, pas un produit : chaque coupe es
 - Non publié sur PyPI ; installation en mode éditable uniquement.
 - Le choix de construire plutôt qu'adopter (promptfoo, deepeval) est pesé honnêtement dans ADR-001 : dans une équipe produit, adopter un harnais existant et poser la calibration par-dessus est souvent le bon appel.
 
+## Projets associés
+
+Ces outils partagent les mêmes principes : **le déterministe d'abord, l'IA là où elle apporte — le QA reste l'arbitre.** Tous tournent en local, aucune clé API requise.
+
+| Projet | Focus |
+|---|---|
+| [EvalForge](https://github.com/BazanJeremy/EvalForge) **← ce repo** | Évaluation de LLM & calibration du juge |
+| [ReleaseGuard](https://github.com/BazanJeremy/ReleaseGuard) | Verrou de release GO/NO-GO explicable |
+| [FlakySense](https://github.com/BazanJeremy/flakysense) | Diagnostic statistique des tests flaky |
+| [Anomaly Sentinel](https://github.com/BazanJeremy/anomaly-sentinel) | Tester les IA de détection d'anomalies (medtech · fintech) |
+| [TestScribe](https://github.com/BazanJeremy/testscribe) | Enrichissement de bug reports assisté par IA |
+| [SkyGuard](https://github.com/BazanJeremy/skyguard) | Quality gate sécurité pour systèmes critiques avioniques |
+
 ## Auteur
 
 **Jérémy Bazan** — Ingénieur QA / Lead Tech QA, orienté qualité des systèmes IA.
