@@ -57,7 +57,7 @@ Differentiating skills vs P1–P5: **evaluating probabilistic outputs and quanti
 
 ## Conventions
 
-- Codebase, comments, README, ADRs: **professional English** (Swiss/international market). Conversation with the user: French.
+- Codebase, comments, ADRs: **professional English** (Swiss/international market). README is bilingual, portfolio-wide convention: `README.md` in French (primary, Suisse romande market), `README.en.md` in English — kept in sync. Conversation with the user: French.
 - Commits: small, atomic, imperative English (`feat: …`, `test: …`, `docs: …`).
 - Branch workflow: never commit to `main` directly. Each session works on a feature branch (`feat/…`, `docs/…`, `fix/…`) keeping its atomic commits, then opens a GitHub PR to `main`. No "Generated with Claude Code" footer in PR bodies.
 - Targeted changes only — fix precisely, never rewrite broadly.
