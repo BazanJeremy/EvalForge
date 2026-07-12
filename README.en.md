@@ -1,5 +1,7 @@
 # EvalForge
 
+*Version française : [README.md](README.md)*
+
 > LLM output quality evaluator — deterministic checks, a calibration-gated LLM judge, and meta-evaluation ("judge the judge").
 
 **Status: ✅ Complete.** Portfolio project P6 of a 6-project AI Test Engineering portfolio — the final capstone. 121 tests, zero API keys required, CI gated by its own canonical scenarios (see [The CI gate](#the-ci-gate-this-repo-checks-its-own-contract)).
@@ -150,3 +152,10 @@ P6 of a 6-project AI Test Engineering portfolio — the final capstone, closing 
 Industry AI-test-engineering roadmaps (e.g. [ittestgroup's 2026 roadmap](https://ittestgroup.com/feuille-de-route-ai-test-engineering-2026/)) place "testing AI systems" as the terminal phase of the discipline, precisely because probabilistic, non-deterministic systems need specialized evaluation — and evaluators whose own reliability is quantified. That is this project's single differentiating claim, enforced in code: *an uncalibrated judge can never affect the verdict.*
 
 Deliberate v1 scope cuts (documented in [CLAUDE.md](CLAUDE.md)): no pairwise/A-B comparison (and with it, position-bias probes), single judge implementation behind a `Protocol`, `json_structure` rather than full JSON Schema — each a stated extension point, not an accident.
+
+## Author
+
+**Jérémy Bazan** — QA Engineer / QA Tech Lead, focused on AI-driven quality engineering.
+[LinkedIn](https://www.linkedin.com/in/jeremy-bazan/) · [GitHub](https://github.com/BazanJeremy)
+
+Licensed under the [MIT License](LICENSE).
