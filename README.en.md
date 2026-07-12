@@ -42,9 +42,9 @@ Exit code `1` — a CI pipeline can gate on it directly (`0` PASS, `1` DEGRADED,
 
 [ReleaseGuard](https://github.com/BazanJeremy/ReleaseGuard) fuses deterministic quality signals into a release verdict; EvalForge answers the next question up the stack: **how much can an LLM signal be trusted before letting it vote?** The sample datasets evaluate [TestScribe](https://github.com/BazanJeremy/testscribe)-style enriched bug reports — soft interop, no runtime coupling.
 
-## The evaluation model (ADR-001)
+## How it works
 
-Three tiers, each with a distinct epistemic status:
+Three tiers ([ADR-001](docs/adr/ADR-001-evaluation-model.md)), each with a distinct epistemic status:
 
 | Tier | What | Trust status |
 |---|---|---|
@@ -85,34 +85,6 @@ flowchart LR
 - Weights renormalize when the judge is absent or uncalibrated; the absence lands in the conditions list. Every number lives in [`policy.py`](src/evalforge/policy.py) — there are deliberately **no tuning flags** ([ADR-002](docs/adr/ADR-002-cli-contract.md)): the thresholds are the product's core promise, so changing one goes through a superseding ADR, not a pipeline flag.
 - Failure modes degrade, never crash: a judge error falls back to deterministic-only scoring (noted as a condition), blocked cases are never graded, and a missing output is an error (exit 3), never a verdict — no evidence, no opinion.
 
-## Quickstart
-
-```powershell
-git clone https://github.com/BazanJeremy/EvalForge.git
-cd EvalForge
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -e .[dev]
-python -m pytest                # 121 tests, no API key needed
-
-# the three canonical scenarios (expected exits: 0, 2, 1)
-evalforge run --suite data/samples/scenario_pass/suite.json --outputs data/samples/scenario_pass/outputs.jsonl
-evalforge run --suite data/samples/scenario_fail/suite.json --outputs data/samples/scenario_fail/outputs.jsonl
-evalforge run --suite data/samples/scenario_degraded/suite.json --outputs data/samples/scenario_degraded/outputs.jsonl
-```
-
-Optional Tier 2 (`pip install -e .[llm]` and set `ANTHROPIC_API_KEY`), then earn the judge its vote:
-
-```powershell
-# 1. Measure the judge against the human-labeled golden set
-evalforge calibrate --suite data/samples/golden/suite.json --outputs data/samples/golden/outputs.jsonl --labels data/samples/golden/labels.json --out calibration.json
-
-# 2. Only a calibrated report lets the judge into the verdict
-evalforge run --suite suite.json --outputs outputs.jsonl --calibration calibration.json
-```
-
-Everything above works identically without a key — the judge simply stays out of the verdict. A calibration report goes stale when the judge model or the rubric changes: re-run `evalforge calibrate`.
-
 ## The CI gate: this repo checks its own contract
 
 There is deliberately no Docker here. EvalForge's deployment story is its own CI: every push runs the 121-test suite, then executes the **installed `evalforge` binary** on the three canonical scenarios and fails the build if any exit code deviates from its committed manifest:
@@ -124,7 +96,35 @@ test "$got" -eq "$(manifest expected_exit)"
 
 See [.github/workflows/ci.yml](.github/workflows/ci.yml). The evaluation contract is not documentation — it is executed on every push, with the verdict table published in the job summary.
 
-## Architecture decisions
+## Quickstart
+
+```bash
+git clone https://github.com/BazanJeremy/EvalForge.git
+cd EvalForge
+python -m venv .venv
+source .venv/bin/activate       # Windows PowerShell: .\.venv\Scripts\Activate.ps1
+pip install -e .[dev]
+python -m pytest                # 121 tests, no API key needed
+
+# the three canonical scenarios (expected exits: 0, 2, 1)
+evalforge run --suite data/samples/scenario_pass/suite.json --outputs data/samples/scenario_pass/outputs.jsonl
+evalforge run --suite data/samples/scenario_fail/suite.json --outputs data/samples/scenario_fail/outputs.jsonl
+evalforge run --suite data/samples/scenario_degraded/suite.json --outputs data/samples/scenario_degraded/outputs.jsonl
+```
+
+Optional Tier 2 (`pip install -e .[llm]` and set `ANTHROPIC_API_KEY`), then earn the judge its vote:
+
+```bash
+# 1. Measure the judge against the human-labeled golden set
+evalforge calibrate --suite data/samples/golden/suite.json --outputs data/samples/golden/outputs.jsonl --labels data/samples/golden/labels.json --out calibration.json
+
+# 2. Only a calibrated report lets the judge into the verdict
+evalforge run --suite suite.json --outputs outputs.jsonl --calibration calibration.json
+```
+
+Everything above works identically without a key — the judge simply stays out of the verdict. A calibration report goes stale when the judge model or the rubric changes: re-run `evalforge calibrate`.
+
+## Design decisions
 
 | ADR | Decision |
 |---|---|
@@ -134,6 +134,17 @@ See [.github/workflows/ci.yml](.github/workflows/ci.yml). The evaluation contrac
 ADR-001 also documents the build-vs-adopt decision honestly: promptfoo/deepeval were weighed and rejected *for this project* because calibration-gating the judge is not a first-class primitive there and the project's goal is demonstrating evaluation engineering from first principles — in a product team, adopting one and layering calibration on top is often the right call.
 
 Bugs caught by the project's own tests and dogfood runs are documented in [docs/bug-evidence.md](docs/bug-evidence.md) — including the S3 review catching a `deterministic_score` ambiguity where "no checks defined" was indistinguishable from "every check failed".
+
+## Known limitations
+
+A tool with a deliberately reduced scope, not a product — each cut is documented and is a stated extension point, not an accident:
+
+- 10-case golden set — a kappa over so few points is noisy; adjacent agreement is reported alongside for that reason.
+- No pairwise/A-B comparison between models — and with it, no position-bias probes.
+- Single reference judge implementation (Anthropic) behind a `Protocol`; no judge ensembles.
+- `json_structure` (parse + required keys) rather than full JSON Schema validation.
+- Not published on PyPI; editable install only.
+- The build-vs-adopt call (promptfoo, deepeval) is weighed honestly in ADR-001: in a product team, adopting an existing harness and layering calibration on top is often the right call.
 
 ## Project structure
 
@@ -151,17 +162,6 @@ docs/adr/       # architecture decision records
 docs/bug-evidence.md
 tests/          # 121 tests: contracts, checkers, judge parsing, metrics, verdicts, CLI
 ```
-
-## Known limitations
-
-A tool with a deliberately reduced scope, not a product — each cut is documented and is a stated extension point, not an accident:
-
-- 10-case golden set — a kappa over so few points is noisy; adjacent agreement is reported alongside for that reason.
-- No pairwise/A-B comparison between models — and with it, no position-bias probes.
-- Single reference judge implementation (Anthropic) behind a `Protocol`; no judge ensembles.
-- `json_structure` (parse + required keys) rather than full JSON Schema validation.
-- Not published on PyPI; editable install only.
-- The build-vs-adopt call (promptfoo, deepeval) is weighed honestly in ADR-001: in a product team, adopting an existing harness and layering calibration on top is often the right call.
 
 ## Related projects
 

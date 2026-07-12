@@ -35,7 +35,7 @@ Exit code `1` — une pipeline CI peut bloquer directement dessus (`0` PASS, `1`
 
 **Statut : complet.** 121 tests, zéro clé API requise, CI verrouillée par ses propres scénarios canoniques.
 
-## Le problème : tester une sortie qui n'est jamais deux fois la même
+## Le problème
 
 Un système LLM en production produit des sorties non déterministes : le même prompt peut donner deux réponses différentes, et « ça a l'air bon » n'est pas un critère de qualité. La réponse par défaut de l'industrie — faire noter les sorties par un second LLM (*LLM-as-judge*) — déplace le problème sans le résoudre : un juge non validé est une seconde opinion de qualité inconnue posée sur la première, avec ses défaillances documentées (sycophantie, biais de verbosité, dérive d'échelle) laissées non mesurées.
 
@@ -43,7 +43,7 @@ EvalForge est un framework d'évaluation LLM qui traite le juge lui-même comme 
 
 [ReleaseGuard](https://github.com/BazanJeremy/ReleaseGuard) fusionne des signaux qualité déterministes en un verdict de release ; EvalForge répond à la question suivante : **à quel point peut-on faire confiance à un signal LLM avant de le laisser voter ?** Les jeux de données d'exemple évaluent des rapports de bug enrichis façon [TestScribe](https://github.com/BazanJeremy/testscribe) — interopérabilité souple, aucun couplage à l'exécution.
 
-## L'approche : trois étages, trois statuts de confiance
+## Comment ça marche
 
 | Étage | Quoi | Statut de confiance |
 |---|---|---|
@@ -58,6 +58,8 @@ Trois engagements de conception portent le modèle ([ADR-001](docs/adr/ADR-001-e
 3. **`FAIL` exige un défaut identifiable.** Le score seul ne choisit qu'entre `PASS` et `DEGRADED` : une qualité moyenne sans défaut bloquant nommé est une livraison dégradée avec risques listés, pas un veto.
 
 Score : `0.6 × taux de passage déterministe + 0.4 × qualité juge`. Les poids se renormalisent quand le juge est absent ou non calibré, et cette absence est tracée dans les conditions du rapport. Tous les seuils vivent dans [`policy.py`](src/evalforge/policy.py) — aucun flag de réglage ([ADR-002](docs/adr/ADR-002-cli-contract.md)) : un seuil ne change que par un ADR qui remplace le précédent.
+
+## Architecture
 
 ```mermaid
 flowchart LR
@@ -100,13 +102,13 @@ La suite déclare, par cas, des checks déterministes et une rubrique pour le ju
 
 Lecture : une sortie sans JSON valide ou contenant du contenu interdit est un défaut dur — verdict `FAIL`, quel que soit le reste. Une sortie trop courte ou qui omet le mot-clé dégrade le score sans le mettre à zéro. La rubrique (correctness, completeness, clarity) est notée 1–5 par le juge — si, et seulement si, ce juge a prouvé son accord avec un évaluateur humain.
 
-## Démo en local
+## Démarrage rapide
 
-```powershell
+```bash
 git clone https://github.com/BazanJeremy/EvalForge.git
 cd EvalForge
 python -m venv .venv
-.\.venv\Scripts\Activate.ps1
+source .venv/bin/activate       # Windows PowerShell : .\.venv\Scripts\Activate.ps1
 pip install -e .[dev]
 python -m pytest                # 121 tests, aucune clé API requise
 
@@ -118,7 +120,7 @@ evalforge run --suite data/samples/scenario_degraded/suite.json --outputs data/s
 
 Étage 2 optionnel (`pip install -e .[llm]` + `ANTHROPIC_API_KEY`), puis le juge doit gagner son droit de vote :
 
-```powershell
+```bash
 # 1. Mesurer le juge contre le golden set étiqueté humain
 evalforge calibrate --suite data/samples/golden/suite.json --outputs data/samples/golden/outputs.jsonl --labels data/samples/golden/labels.json --out calibration.json
 
@@ -128,7 +130,7 @@ evalforge run --suite suite.json --outputs outputs.jsonl --calibration calibrati
 
 Tout fonctionne à l'identique sans clé — le juge reste simplement hors du verdict. Un rapport de calibration devient obsolète quand le modèle du juge ou la rubrique change : relancer `evalforge calibrate`.
 
-## Stack technique
+## Décisions de conception
 
 - **Python ≥ 3.12, Pydantic v2** pour tous les contrats de données — les invariants du verdict sont des validateurs de modèle, pas des conventions.
 - **pytest + coverage** : 121 tests (contrats, checkers, parsing du juge, métriques, verdicts de bout en bout, CLI), tous exécutables sans clé API.
@@ -137,7 +139,7 @@ Tout fonctionne à l'identique sans clé — le juge reste simplement hors du ve
 - **CI GitHub Actions zéro clé** qui exécute le binaire `evalforge` installé contre les trois scénarios canoniques et casse le build si un exit code dévie de son manifeste — le contrat d'évaluation est exécuté à chaque push, pas seulement documenté.
 - Décisions d'architecture tracées : [ADR-001](docs/adr/ADR-001-evaluation-model.md) (modèle d'évaluation), [ADR-002](docs/adr/ADR-002-cli-contract.md) (contrat CLI). Les bugs attrapés par les propres tests du projet sont documentés dans [docs/bug-evidence.md](docs/bug-evidence.md).
 
-## Limites
+## Limites connues
 
 Un outil au périmètre volontairement réduit, pas un produit : chaque coupe est documentée.
 
