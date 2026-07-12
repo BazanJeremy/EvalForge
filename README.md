@@ -33,13 +33,15 @@ Conditions:
 
 Exit code `1` — une pipeline CI peut bloquer directement dessus (`0` PASS, `1` DEGRADED, `2` FAIL, `3` erreur).
 
-**Statut : complet.** 121 tests, zéro clé API requise, CI verrouillée par ses propres scénarios canoniques. Projet P6 — capstone d'un portfolio de 6 projets AI Test Engineering.
+**Statut : complet.** 121 tests, zéro clé API requise, CI verrouillée par ses propres scénarios canoniques.
 
 ## Le problème : tester une sortie qui n'est jamais deux fois la même
 
 Un système LLM en production produit des sorties non déterministes : le même prompt peut donner deux réponses différentes, et « ça a l'air bon » n'est pas un critère de qualité. La réponse par défaut de l'industrie — faire noter les sorties par un second LLM (*LLM-as-judge*) — déplace le problème sans le résoudre : un juge non validé est une seconde opinion de qualité inconnue posée sur la première, avec ses défaillances documentées (sycophantie, biais de verbosité, dérive d'échelle) laissées non mesurées.
 
 EvalForge est un framework d'évaluation LLM qui traite le juge lui-même comme un système sous test : des checks déterministes non compensables, un juge LLM optionnel, et une couche de méta-évaluation qui décide — à partir de métriques de fiabilité mesurées contre des labels humains — si ce juge mérite de voter.
+
+[ReleaseGuard](https://github.com/BazanJeremy/ReleaseGuard) fusionne des signaux qualité déterministes en un verdict de release ; EvalForge répond à la question suivante : **à quel point peut-on faire confiance à un signal LLM avant de le laisser voter ?** Les jeux de données d'exemple évaluent des rapports de bug enrichis façon [TestScribe](https://github.com/BazanJeremy/testscribe) — interopérabilité souple, aucun couplage à l'exécution.
 
 ## L'approche : trois étages, trois statuts de confiance
 
@@ -137,7 +139,7 @@ Tout fonctionne à l'identique sans clé — le juge reste simplement hors du ve
 
 ## Limites
 
-Projet de portfolio, pas un produit : le périmètre est volontairement réduit et chaque coupe est documentée.
+Un outil au périmètre volontairement réduit, pas un produit : chaque coupe est documentée.
 
 - Golden set de 10 cas — un kappa sur si peu de points est bruité ; l'agreement adjacent est rapporté à côté pour cette raison.
 - Pas de comparaison par paires (A/B) entre modèles, donc pas de sondes de biais de position — point d'extension déclaré.
@@ -150,7 +152,5 @@ Projet de portfolio, pas un produit : le périmètre est volontairement réduit 
 
 **Jérémy Bazan** — Ingénieur QA / Lead Tech QA, orienté qualité des systèmes IA.
 [LinkedIn](https://www.linkedin.com/in/jeremy-bazan/) · [GitHub](https://github.com/BazanJeremy)
-
-P6 d'un portfolio de 6 projets AI Test Engineering — [ReleaseGuard (P5)](https://github.com/BazanJeremy/ReleaseGuard) fusionnait des signaux qualité déterministes en un verdict ; EvalForge répond à la question suivante : **à quel point peut-on faire confiance à un signal LLM avant de le laisser voter ?** Les jeux de données évaluent des rapports de bug enrichis façon [TestScribe (P3)](https://github.com/BazanJeremy/testscribe) — interopérabilité souple, aucun couplage à l'exécution.
 
 Distribué sous [licence MIT](LICENSE).

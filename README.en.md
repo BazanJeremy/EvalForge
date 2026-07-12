@@ -9,7 +9,7 @@
 
 > 🇫🇷 [Version française](README.md)
 
-**Status: ✅ Complete.** Portfolio project P6 of a 6-project AI Test Engineering portfolio — the final capstone. 121 tests, zero API keys required, CI gated by its own canonical scenarios (see [The CI gate](#the-ci-gate-this-repo-checks-its-own-contract)).
+**Status: ✅ Complete.** 121 tests, zero API keys required, CI gated by its own canonical scenarios (see [The CI gate](#the-ci-gate-this-repo-checks-its-own-contract)).
 
 ## The problem
 
@@ -39,6 +39,8 @@ Conditions:
 ```
 
 Exit code `1` — a CI pipeline can gate on it directly (`0` PASS, `1` DEGRADED, `2` FAIL, `3` error).
+
+[ReleaseGuard](https://github.com/BazanJeremy/ReleaseGuard) fuses deterministic quality signals into a release verdict; EvalForge answers the next question up the stack: **how much can an LLM signal be trusted before letting it vote?** The sample datasets evaluate [TestScribe](https://github.com/BazanJeremy/testscribe)-style enriched bug reports — soft interop, no runtime coupling.
 
 ## The evaluation model (ADR-001)
 
@@ -113,7 +115,7 @@ Everything above works identically without a key — the judge simply stays out 
 
 ## The CI gate: this repo checks its own contract
 
-There is deliberately no Docker here (P4 demonstrates it). EvalForge's deployment story is its own CI: every push runs the 121-test suite, then executes the **installed `evalforge` binary** on the three canonical scenarios and fails the build if any exit code deviates from its committed manifest:
+There is deliberately no Docker here. EvalForge's deployment story is its own CI: every push runs the 121-test suite, then executes the **installed `evalforge` binary** on the three canonical scenarios and fails the build if any exit code deviates from its committed manifest:
 
 ```bash
 evalforge run --suite "$dir/suite.json" --outputs "$dir/outputs.jsonl" || got=$?
@@ -129,7 +131,7 @@ See [.github/workflows/ci.yml](.github/workflows/ci.yml). The evaluation contrac
 | [ADR-001](docs/adr/ADR-001-evaluation-model.md) | Evaluation model: three tiers, non-compensable blocking checks, calibration-gated judge |
 | [ADR-002](docs/adr/ADR-002-cli-contract.md) | CLI contract: verdict-mapped exit codes (usage errors on 3, not argparse's 2), calibration as an explicit step and durable artifact, no tuning flags |
 
-ADR-001 also documents the build-vs-adopt decision honestly: promptfoo/deepeval were weighed and rejected *for this project* because calibration-gating the judge is not a first-class primitive there and the portfolio goal is demonstrating evaluation engineering from first principles — in a product team, adopting one and layering calibration on top is often the right call.
+ADR-001 also documents the build-vs-adopt decision honestly: promptfoo/deepeval were weighed and rejected *for this project* because calibration-gating the judge is not a first-class primitive there and the project's goal is demonstrating evaluation engineering from first principles — in a product team, adopting one and layering calibration on top is often the right call.
 
 Bugs caught by the project's own tests and dogfood runs are documented in [docs/bug-evidence.md](docs/bug-evidence.md) — including the S3 review catching a `deterministic_score` ambiguity where "no checks defined" was indistinguishable from "every check failed".
 
@@ -150,13 +152,16 @@ docs/bug-evidence.md
 tests/          # 121 tests: contracts, checkers, judge parsing, metrics, verdicts, CLI
 ```
 
-## Portfolio context
+## Known limitations
 
-P6 of a 6-project AI Test Engineering portfolio — the final capstone, closing the trajectory *simple agents → RAG → multi-agent orchestration → signal fusion → LLM evaluation*. [ReleaseGuard (P5)](https://github.com/BazanJeremy/ReleaseGuard) fused deterministic quality signals into a verdict; EvalForge answers the next question up the stack: **how much can an LLM signal be trusted before letting it vote?** The sample datasets evaluate [TestScribe](https://github.com/BazanJeremy/testscribe)-style enriched bug reports — soft interop, no runtime coupling.
+A tool with a deliberately reduced scope, not a product — each cut is documented and is a stated extension point, not an accident:
 
-Industry AI-test-engineering roadmaps (e.g. [ittestgroup's 2026 roadmap](https://ittestgroup.com/feuille-de-route-ai-test-engineering-2026/)) place "testing AI systems" as the terminal phase of the discipline, precisely because probabilistic, non-deterministic systems need specialized evaluation — and evaluators whose own reliability is quantified. That is this project's single differentiating claim, enforced in code: *an uncalibrated judge can never affect the verdict.*
-
-Deliberate v1 scope cuts (documented in [CLAUDE.md](CLAUDE.md)): no pairwise/A-B comparison (and with it, position-bias probes), single judge implementation behind a `Protocol`, `json_structure` rather than full JSON Schema — each a stated extension point, not an accident.
+- 10-case golden set — a kappa over so few points is noisy; adjacent agreement is reported alongside for that reason.
+- No pairwise/A-B comparison between models — and with it, no position-bias probes.
+- Single reference judge implementation (Anthropic) behind a `Protocol`; no judge ensembles.
+- `json_structure` (parse + required keys) rather than full JSON Schema validation.
+- Not published on PyPI; editable install only.
+- The build-vs-adopt call (promptfoo, deepeval) is weighed honestly in ADR-001: in a product team, adopting an existing harness and layering calibration on top is often the right call.
 
 ## Author
 
