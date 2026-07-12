@@ -8,7 +8,7 @@
 
 LLM outputs are probabilistic: the same prompt can yield different answers, and "looks good" is not a quality gate. The industry's default fix — **LLM-as-judge** — grades outputs with another model, but an unvalidated judge is just a second opinion of unknown quality stacked on the first. Known failure modes (verbosity bias, self-preference, scale drift) go unmeasured unless the judge itself is evaluated.
 
-EvalForge must produce an explainable, CI-gateable verdict on a batch of LLM outputs while honoring the portfolio-wide constraint: **the full test suite and CI run green with zero API keys**, and no component is trusted blindly.
+EvalForge must produce an explainable, CI-gateable verdict on a batch of LLM outputs while honoring the series-wide constraint: **the full test suite and CI run green with zero API keys**, and no component is trusted blindly.
 
 ## Decision
 
@@ -26,7 +26,7 @@ Rubric-based grading: each criterion scored on a **1–5 integer scale**, struct
 
 Against a **golden set** of human-labeled cases (n ≥ `MIN_GOLDEN_CASES` = 10), compute judge↔human agreement: exact agreement, adjacent agreement (|judge − human| ≤ 1), and **Cohen's kappa** (chance-corrected).
 
-**Calibration gate — the core commitment: an uncalibrated judge can never affect the verdict.** Judge scores enter the suite score only when kappa ≥ `KAPPA_FLOOR` = 0.4 ("moderate" per Landis & Koch). Below the floor, judge output is demoted to advisory — reported for transparency, excluded from scoring — and a condition is added. This is P6's parallel to P5's "hard verdicts never depend on an LLM".
+**Calibration gate — the core commitment: an uncalibrated judge can never affect the verdict.** Judge scores enter the suite score only when kappa ≥ `KAPPA_FLOOR` = 0.4 ("moderate" per Landis & Koch). Below the floor, judge output is demoted to advisory — reported for transparency, excluded from scoring — and a condition is added. This is EvalForge's parallel to ReleaseGuard's "hard verdicts never depend on an LLM".
 
 ### Scoring and verdict
 
@@ -46,7 +46,7 @@ CLI exit codes (S3): `0` PASS · `1` DEGRADED · `2` FAIL · `3` error.
 ## Options Considered
 
 1. **Pure LLM-as-judge** — maximum flexibility, minimum ceremony; but the judge's reliability is assumed, not measured, CI would need API keys, and runs are non-reproducible. Rejected.
-2. **Adopt an existing harness (promptfoo, deepeval, OpenAI Evals)** — mature, feature-rich. Rejected *here* for two honest reasons: the portfolio goal is demonstrating evaluation engineering from first principles, and calibration-gating the judge against human labels is not a first-class primitive in these tools. In a real team, adopting one and layering calibration on top is often the right call — this trade-off is deliberate and should be stated in interviews, not hidden.
+2. **Adopt an existing harness (promptfoo, deepeval, OpenAI Evals)** — mature, feature-rich. Rejected *here* for two honest reasons: the project's goal is demonstrating evaluation engineering from first principles, and calibration-gating the judge against human labels is not a first-class primitive in these tools. In a real team, adopting one and layering calibration on top is often the right call — this trade-off is deliberate and should be stated openly, not hidden.
 3. **Three-tier model with calibration-gated judge** — deterministic core, optional judge that must *earn* verdict rights on a golden set. **Accepted.**
 
 ## Consequences

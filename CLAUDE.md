@@ -1,7 +1,7 @@
 # CLAUDE.md — EvalForge
 
 > LLM output quality evaluator — deterministic checks, a calibration-gated LLM judge, and meta-evaluation ("judge the judge").
-> Portfolio project P6 of a 6-project AI Test Engineering portfolio — the final capstone.
+> The capstone of a six-project AI Test Engineering series.
 
 ## Project State — READ FIRST
 
@@ -22,11 +22,11 @@ Answer the question every team shipping LLM features faces: **"is this model out
 
 Output: an explainable `SuiteReport` (`PASS` / `DEGRADED` / `FAIL`) with per-case breakdown and conditions; CLI exit codes `0/1/2/3` (S3) so CI can gate on it.
 
-Differentiating skills vs P1–P5: **evaluating probabilistic outputs and quantifying the evaluator's own reliability**. P5 fused deterministic signals into a verdict; P6 measures how much an LLM signal can be trusted at all before letting it vote. Soft interop with P3: sample datasets evaluate TestScribe-style enriched bug reports — no runtime coupling.
+Differentiating skills vs the five earlier projects: **evaluating probabilistic outputs and quantifying the evaluator's own reliability**. ReleaseGuard fused deterministic signals into a verdict; EvalForge measures how much an LLM signal can be trusted at all before letting it vote. Soft interop with TestScribe: sample datasets evaluate TestScribe-style enriched bug reports — no runtime coupling.
 
 ## Deliberate scope cuts (quality over quantity)
 
-- **No Docker** (P4 demonstrates it), **no dashboard/API** (P3 has one), **no multi-agent** (P4), **no RAG** (P3). Deployment story = zero-key CI + canonical-scenario gate (S3).
+- **No Docker** (FlakySense demonstrates it), **no dashboard/API** (TestScribe has one), **no multi-agent** (FlakySense), **no RAG** (TestScribe). Deployment story = zero-key CI + canonical-scenario gate (S3).
 - **No pairwise/A-B comparison** in v1 — and with it, no position-bias probes. Documented extension point.
 - **Single judge implementation** (Anthropic reference impl behind a `Protocol`; scripted `FakeJudge` for tests). No judge ensembles.
 - **`json_structure` check, not full JSON Schema** — parse + required keys covers the fixtures without a `jsonschema` dependency. Extension point.
@@ -38,12 +38,12 @@ Differentiating skills vs P1–P5: **evaluating probabilistic outputs and quanti
 - **S2 — Implementation**: deterministic checkers, judge layer (`Protocol` + `AnthropicJudge` + `FakeJudge`), aggregation/verdict engine, meta-evaluation metrics (agreement, kappa, consistency).
 - **S3 — Integration**: CLI (`evalforge run`, `evalforge calibrate`, verdict-mapped exit codes), CI canonical-scenario gate, senior README, bug-evidence log.
 
-## Architecture Principles (non-negotiable, portfolio-wide)
+## Architecture Principles (non-negotiable, series-wide)
 
 1. **Deterministic fallback on every AI component.** Full test suite and CI run green with **zero API keys**. LLM calls are an enhancement layer.
 2. **Pydantic v2** for all data models.
 3. **ADRs in `docs/adr/`** are first-class deliverables. Superseded, never edited retroactively.
-4. **Bugs found by tests = portfolio evidence.** Document (what the test caught, why it mattered) before fixing.
+4. **Bugs found by tests = documented evidence.** Document (what the test caught, why it mattered) before fixing.
 5. **Free/open-source only.** Solo-buildable. No paid services, no enterprise access.
 
 ## Environment
@@ -57,7 +57,7 @@ Differentiating skills vs P1–P5: **evaluating probabilistic outputs and quanti
 
 ## Conventions
 
-- Codebase, comments, ADRs: **professional English** (Swiss/international market). README is bilingual, portfolio-wide convention: `README.md` in French (primary, Suisse romande market), `README.en.md` in English — kept in sync. Conversation with the user: French.
+- Codebase, comments, ADRs: **professional English** (Swiss/international market). README is bilingual, series-wide convention: `README.md` in French (primary, Suisse romande market), `README.en.md` in English — kept in sync. Conversation with the user: French.
 - Commits: small, atomic, imperative English (`feat: …`, `test: …`, `docs: …`).
 - Branch workflow: never commit to `main` directly. Each session works on a feature branch (`feat/…`, `docs/…`, `fix/…`) keeping its atomic commits, then opens a GitHub PR to `main`. No "Generated with Claude Code" footer in PR bodies.
 - Targeted changes only — fix precisely, never rewrite broadly.

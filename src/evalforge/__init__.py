@@ -1,4 +1,4 @@
-"""EvalForge — LLM output quality evaluator (portfolio project P6).
+"""EvalForge — LLM output quality evaluator.
 
 Deterministic checks, a calibration-gated LLM judge, and meta-evaluation:
 an uncalibrated judge can never affect the verdict (ADR-001).

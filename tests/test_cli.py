@@ -80,7 +80,7 @@ def test_canonical_scenarios_exit_with_their_declared_code(scenario_dir, capsys)
 
 
 def test_console_output_is_ascii_only(scenario_dir, capsys):
-    """Pins the portfolio convention: legacy Windows consoles garble non-ASCII."""
+    """Pins the series-wide convention: legacy Windows consoles garble non-ASCII."""
     main(scenario_args(scenario_dir), judge_provider=NO_JUDGE)
     out = capsys.readouterr().out
     assert out and out.isascii()

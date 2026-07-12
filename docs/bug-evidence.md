@@ -1,6 +1,6 @@
 # Bug Evidence
 
-Portfolio principle #4: **bugs found by the project's own tests and demo runs
+Series-wide principle #4: **bugs found by the project's own tests and demo runs
 are assets.** Each entry documents what was caught, by what, and why it
 mattered — written before the fix landed.
 
