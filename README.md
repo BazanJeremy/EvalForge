@@ -1,14 +1,10 @@
 # EvalForge
 
-> LLM output quality evaluator — deterministic checks, a calibration-gated LLM judge, and meta-evaluation ("judge the judge").
+*English version: [README.en.md](README.en.md)*
 
-**Status: ✅ Complete.** Portfolio project P6 of a 6-project AI Test Engineering portfolio — the final capstone. 121 tests, zero API keys required, CI gated by its own canonical scenarios (see [The CI gate](#the-ci-gate-this-repo-checks-its-own-contract)).
+> Quality gate pour systèmes LLM — checks déterministes, juge LLM sous calibration, et méta-évaluation qui « juge le juge ».
 
-## The problem
-
-Every team shipping LLM features faces the same two questions on every release: **is this model output good enough — and can we trust the thing that says so?**
-
-The industry default — LLM-as-judge — answers the first question while ignoring the second: an unvalidated judge is a second opinion of unknown quality stacked on the first, with its known failure modes (sycophancy, verbosity bias, scale drift) left unmeasured. EvalForge treats the judge itself as a system under test: deterministic checks that cannot be compensated away, an optional LLM judge, and a meta-evaluation layer that decides — from measured agreement with human labels — whether that judge deserves a vote.
+Trois rapports de bug enrichis par un LLM, évalués en une commande :
 
 ```
 $ evalforge run --suite suite.json --outputs outputs.jsonl
@@ -28,55 +24,76 @@ Conditions:
   - case BR-001: non-blocking length check failed (length 91 below minimum 120)
   - case BR-002: non-blocking contains check failed (output does not contain 'firefox')
   ...
-  - judge unavailable: score is deterministic-only
 ```
 
-Exit code `1` — a CI pipeline can gate on it directly (`0` PASS, `1` DEGRADED, `2` FAIL, `3` error).
+Exit code `1` — une pipeline CI peut bloquer directement dessus (`0` PASS, `1` DEGRADED, `2` FAIL, `3` erreur).
 
-## The evaluation model (ADR-001)
+**Statut : complet.** 121 tests, zéro clé API requise, CI verrouillée par ses propres scénarios canoniques. Projet P6 — capstone d'un portfolio de 6 projets AI Test Engineering.
 
-Three tiers, each with a distinct epistemic status:
+## Le problème : tester une sortie qui n'est jamais deux fois la même
 
-| Tier | What | Trust status |
+Un système LLM en production produit des sorties non déterministes : le même prompt peut donner deux réponses différentes, et « ça a l'air bon » n'est pas un critère de qualité. La réponse par défaut de l'industrie — faire noter les sorties par un second LLM (*LLM-as-judge*) — déplace le problème sans le résoudre : un juge non validé est une seconde opinion de qualité inconnue posée sur la première, avec ses défaillances documentées (sycophantie, biais de verbosité, dérive d'échelle) laissées non mesurées.
+
+EvalForge est un framework d'évaluation LLM qui traite le juge lui-même comme un système sous test : des checks déterministes non compensables, un juge LLM optionnel, et une couche de méta-évaluation qui décide — à partir de métriques de fiabilité mesurées contre des labels humains — si ce juge mérite de voter.
+
+## L'approche : trois étages, trois statuts de confiance
+
+| Étage | Quoi | Statut de confiance |
 |---|---|---|
-| **1 — deterministic checks** | `json_structure`, `contains`, `regex`, `length`, `forbidden` | Always trusted. A failed *blocking* check ⇒ `FAIL`, non-compensable |
-| **2 — LLM-as-judge** | rubric-based 1–5 grading, structured output, env-gated | Trusted **only after calibration** |
-| **3 — meta-evaluation** | exact + adjacent agreement, Cohen's kappa vs human labels | The layer that measures the measurer |
+| **1 — checks déterministes** | `json_structure`, `contains`, `regex`, `length`, `forbidden` | Toujours fiable. Un check *bloquant* échoué ⇒ `FAIL`, non compensable |
+| **2 — juge LLM** | notation 1–5 par critère de rubrique, sortie structurée, activé par l'environnement | Fiable **seulement après calibration** |
+| **3 — méta-évaluation** | agreement exact + adjacent, kappa de Cohen contre labels humains | L'étage qui mesure le mesureur |
 
-Three design commitments carry the model:
+Trois engagements de conception portent le modèle ([ADR-001](docs/adr/ADR-001-evaluation-model.md)) :
 
-1. **An uncalibrated judge can never affect the verdict.** Judge scores enter the suite score only when Cohen's kappa on a human-labeled golden set reaches the policy floor (0.40, "moderate" per Landis & Koch, over ≥ 10 cases). Below it, the judge is demoted to advisory — its grades stay visible on the case results but are excluded from scoring. The gate is enforced *inside the Pydantic models*, not just in the evaluator: a `SuiteReport` carrying a judge score without a calibrated `CalibrationReport` cannot be constructed, and a `CalibrationReport` whose `calibrated` flag contradicts its own kappa is rejected at validation. The tests prove it end-to-end: with identical 5/5 grades, a calibrated judge lifts a DEGRADED suite to PASS (0.75 → 0.85) and an uncalibrated one changes nothing.
-2. **A sycophantic judge fails calibration by construction.** A judge that grades everything 5/5 scores kappa = 0 — pure chance agreement — on the golden set, whose human labels deliberately span the whole 1–5 scale so agreement metrics have teeth ([test](tests/test_metrics.py)).
-3. **`FAIL` requires an identifiable blocker.** The score alone only chooses between `PASS` and `DEGRADED` — low quality without a named hard defect is a degraded ship with listed risks, not a veto (the mirror of [ReleaseGuard](https://github.com/BazanJeremy/ReleaseGuard)'s "NO GO requires a blocker").
+1. **Un juge non calibré ne peut jamais influencer le verdict.** Ses notes n'entrent dans le score que si le kappa de Cohen sur un golden set étiqueté par un humain atteint le plancher (0.40, « modéré » selon Landis & Koch, sur au moins 10 cas). En dessous, le juge est rétrogradé en avis consultatif : ses notes restent visibles sur les résultats, mais sont exclues du score. L'invariant est verrouillé *dans les modèles Pydantic*, pas seulement dans l'évaluateur — un rapport qui le viole ne peut pas être construit.
+2. **Un juge sycophante échoue la calibration par construction.** Un juge qui note tout 5/5 obtient un kappa de 0 — accord dû au seul hasard — sur le golden set, dont les labels humains couvrent délibérément toute l'échelle 1–5.
+3. **`FAIL` exige un défaut identifiable.** Le score seul ne choisit qu'entre `PASS` et `DEGRADED` : une qualité moyenne sans défaut bloquant nommé est une livraison dégradée avec risques listés, pas un veto.
 
-## Architecture
+Score : `0.6 × taux de passage déterministe + 0.4 × qualité juge`. Les poids se renormalisent quand le juge est absent ou non calibré, et cette absence est tracée dans les conditions du rapport. Tous les seuils vivent dans [`policy.py`](src/evalforge/policy.py) — aucun flag de réglage ([ADR-002](docs/adr/ADR-002-cli-contract.md)) : un seuil ne change que par un ADR qui remplace le précédent.
 
 ```mermaid
 flowchart LR
-    subgraph inputs [Inputs]
-        S[suite.json<br/>cases + checks + rubric]
-        O[outputs.jsonl<br/>candidate LLM outputs]
+    subgraph inputs [Entrees]
+        S[suite.json<br/>cas + checks + rubrique]
+        O[outputs.jsonl<br/>sorties LLM candidates]
     end
-    subgraph tier3 [Tier 3 - calibrate once]
-        G[golden set +<br/>human labels] --> C[evalforge calibrate<br/>agreement, Cohen's kappa]
+    subgraph tier3 [Etage 3 - calibrer une fois]
+        G[golden set +<br/>labels humains] --> C[evalforge calibrate<br/>agreement, kappa de Cohen]
         C --> CR[calibration.json]
     end
-    S --> CK[Tier 1 checkers]
+    S --> CK[Etage 1 - checkers]
     O --> CK
-    S --> J[Tier 2 judge<br/>env-gated, optional]
+    S --> J[Etage 2 - juge LLM<br/>optionnel]
     O --> J
-    CK --> E{evaluator}
+    CK --> E{evaluateur}
     J -.-> E
-    CR -.->|calibration gate| E
-    E -->|blocking failure| F[FAIL]
+    CR -.->|porte de calibration| E
+    E -->|check bloquant echoue| F[FAIL]
     E -->|score >= 0.85| P[PASS]
-    E -->|otherwise| D[DEGRADED]
+    E -->|sinon| D[DEGRADED]
 ```
 
-- Weights renormalize when the judge is absent or uncalibrated; the absence lands in the conditions list. Every number lives in [`policy.py`](src/evalforge/policy.py) — there are deliberately **no tuning flags** ([ADR-002](docs/adr/ADR-002-cli-contract.md)): the thresholds are the product's core promise, so changing one goes through a superseding ADR, not a pipeline flag.
-- Failure modes degrade, never crash: a judge error falls back to deterministic-only scoring (noted as a condition), blocked cases are never graded, and a missing output is an error (exit 3), never a verdict — no evidence, no opinion.
+## Un cas d'évaluation type
 
-## Quickstart
+La suite déclare, par cas, des checks déterministes et une rubrique pour le juge. Extrait du scénario canonique (enrichissement de rapports de bug — le premier cas vient du medtech) :
+
+```json
+{
+  "id": "BR-001",
+  "input": "Raw bug report: The infusion pump alarm doesn't sound when the IV line is blocked.",
+  "checks": [
+    {"type": "json_structure", "required_keys": ["title", "severity", "reproduction_steps"], "blocking": true},
+    {"type": "forbidden", "values": ["as an ai", "lorem ipsum"], "blocking": true},
+    {"type": "contains", "value": "alarm"},
+    {"type": "length", "min_chars": 120, "max_chars": 2000}
+  ]
+}
+```
+
+Lecture : une sortie sans JSON valide ou contenant du contenu interdit est un défaut dur — verdict `FAIL`, quel que soit le reste. Une sortie trop courte ou qui omet le mot-clé dégrade le score sans le mettre à zéro. La rubrique (correctness, completeness, clarity) est notée 1–5 par le juge — si, et seulement si, ce juge a prouvé son accord avec un évaluateur humain.
+
+## Démo en local
 
 ```powershell
 git clone https://github.com/BazanJeremy/EvalForge.git
@@ -84,69 +101,51 @@ cd EvalForge
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -e .[dev]
-python -m pytest                # 121 tests, no API key needed
+python -m pytest                # 121 tests, aucune clé API requise
 
-# the three canonical scenarios (expected exits: 0, 2, 1)
+# les trois scénarios canoniques (exit codes attendus : 0, 2, 1)
 evalforge run --suite data/samples/scenario_pass/suite.json --outputs data/samples/scenario_pass/outputs.jsonl
 evalforge run --suite data/samples/scenario_fail/suite.json --outputs data/samples/scenario_fail/outputs.jsonl
 evalforge run --suite data/samples/scenario_degraded/suite.json --outputs data/samples/scenario_degraded/outputs.jsonl
 ```
 
-Optional Tier 2 (`pip install -e .[llm]` and set `ANTHROPIC_API_KEY`), then earn the judge its vote:
+Étage 2 optionnel (`pip install -e .[llm]` + `ANTHROPIC_API_KEY`), puis le juge doit gagner son droit de vote :
 
 ```powershell
-# 1. Measure the judge against the human-labeled golden set
+# 1. Mesurer le juge contre le golden set étiqueté humain
 evalforge calibrate --suite data/samples/golden/suite.json --outputs data/samples/golden/outputs.jsonl --labels data/samples/golden/labels.json --out calibration.json
 
-# 2. Only a calibrated report lets the judge into the verdict
+# 2. Seul un rapport calibré fait entrer le juge dans le verdict
 evalforge run --suite suite.json --outputs outputs.jsonl --calibration calibration.json
 ```
 
-Everything above works identically without a key — the judge simply stays out of the verdict. A calibration report goes stale when the judge model or the rubric changes: re-run `evalforge calibrate`.
+Tout fonctionne à l'identique sans clé — le juge reste simplement hors du verdict. Un rapport de calibration devient obsolète quand le modèle du juge ou la rubrique change : relancer `evalforge calibrate`.
 
-## The CI gate: this repo checks its own contract
+## Stack technique
 
-There is deliberately no Docker here (P4 demonstrates it). EvalForge's deployment story is its own CI: every push runs the 121-test suite, then executes the **installed `evalforge` binary** on the three canonical scenarios and fails the build if any exit code deviates from its committed manifest:
+- **Python ≥ 3.12, Pydantic v2** pour tous les contrats de données — les invariants du verdict sont des validateurs de modèle, pas des conventions.
+- **pytest + coverage** : 121 tests (contrats, checkers, parsing du juge, métriques, verdicts de bout en bout, CLI), tous exécutables sans clé API.
+- **`anthropic` en dépendance optionnelle** derrière un `Protocol` — les tests utilisent un `FakeJudge` scripté.
+- **Métriques sans scipy ni sklearn** : les formules (kappa de Cohen, agreements) sont petites, possédées et auditables.
+- **CI GitHub Actions zéro clé** qui exécute le binaire `evalforge` installé contre les trois scénarios canoniques et casse le build si un exit code dévie de son manifeste — le contrat d'évaluation est exécuté à chaque push, pas seulement documenté.
+- Décisions d'architecture tracées : [ADR-001](docs/adr/ADR-001-evaluation-model.md) (modèle d'évaluation), [ADR-002](docs/adr/ADR-002-cli-contract.md) (contrat CLI). Les bugs attrapés par les propres tests du projet sont documentés dans [docs/bug-evidence.md](docs/bug-evidence.md).
 
-```bash
-evalforge run --suite "$dir/suite.json" --outputs "$dir/outputs.jsonl" || got=$?
-test "$got" -eq "$(manifest expected_exit)"
-```
+## Limites
 
-See [.github/workflows/ci.yml](.github/workflows/ci.yml). The evaluation contract is not documentation — it is executed on every push, with the verdict table published in the job summary.
+Projet de portfolio, pas un produit : le périmètre est volontairement réduit et chaque coupe est documentée.
 
-## Architecture decisions
+- Golden set de 10 cas — un kappa sur si peu de points est bruité ; l'agreement adjacent est rapporté à côté pour cette raison.
+- Pas de comparaison par paires (A/B) entre modèles, donc pas de sondes de biais de position — point d'extension déclaré.
+- Un seul juge de référence (Anthropic) derrière un `Protocol` ; pas d'ensembles de juges.
+- `json_structure` (parsing + clés requises) plutôt qu'une validation JSON Schema complète.
+- Non publié sur PyPI ; installation en mode éditable uniquement.
+- Le choix de construire plutôt qu'adopter (promptfoo, deepeval) est pesé honnêtement dans ADR-001 : dans une équipe produit, adopter un harnais existant et poser la calibration par-dessus est souvent le bon appel.
 
-| ADR | Decision |
-|---|---|
-| [ADR-001](docs/adr/ADR-001-evaluation-model.md) | Evaluation model: three tiers, non-compensable blocking checks, calibration-gated judge |
-| [ADR-002](docs/adr/ADR-002-cli-contract.md) | CLI contract: verdict-mapped exit codes (usage errors on 3, not argparse's 2), calibration as an explicit step and durable artifact, no tuning flags |
+## Auteur
 
-ADR-001 also documents the build-vs-adopt decision honestly: promptfoo/deepeval were weighed and rejected *for this project* because calibration-gating the judge is not a first-class primitive there and the portfolio goal is demonstrating evaluation engineering from first principles — in a product team, adopting one and layering calibration on top is often the right call.
+**Jérémy Bazan** — Ingénieur QA / Lead Tech QA, orienté qualité des systèmes IA.
+[LinkedIn](https://www.linkedin.com/in/jeremy-bazan/) · [GitHub](https://github.com/BazanJeremy)
 
-Bugs caught by the project's own tests and dogfood runs are documented in [docs/bug-evidence.md](docs/bug-evidence.md) — including the S3 review catching a `deterministic_score` ambiguity where "no checks defined" was indistinguishable from "every check failed".
+P6 d'un portfolio de 6 projets AI Test Engineering — [ReleaseGuard (P5)](https://github.com/BazanJeremy/ReleaseGuard) fusionnait des signaux qualité déterministes en un verdict ; EvalForge répond à la question suivante : **à quel point peut-on faire confiance à un signal LLM avant de le laisser voter ?** Les jeux de données évaluent des rapports de bug enrichis façon [TestScribe (P3)](https://github.com/BazanJeremy/testscribe) — interopérabilité souple, aucun couplage à l'exécution.
 
-## Project structure
-
-```
-src/evalforge/
-  models.py     # Pydantic v2 contract models; ADR-001 invariants enforced in-model
-  policy.py     # every ADR-001 number, single source
-  checkers.py   # Tier 1 deterministic checks
-  judge.py      # Tier 2 env-gated LLM judge (LLMClient/Judge Protocols, Anthropic impl, FakeJudge)
-  metrics.py    # Tier 3 meta-evaluation (agreement, Cohen's kappa, self-consistency, calibrate)
-  evaluator.py  # verdict engine: blocking gates -> calibration-gated score -> PASS/DEGRADED/FAIL
-  cli.py        # argparse CLI: run / calibrate, verdict-mapped exit codes (ADR-002)
-data/samples/   # canonical scenarios (PASS / FAIL / DEGRADED) + human-labeled golden set
-docs/adr/       # architecture decision records
-docs/bug-evidence.md
-tests/          # 121 tests: contracts, checkers, judge parsing, metrics, verdicts, CLI
-```
-
-## Portfolio context
-
-P6 of a 6-project AI Test Engineering portfolio — the final capstone, closing the trajectory *simple agents → RAG → multi-agent orchestration → signal fusion → LLM evaluation*. [ReleaseGuard (P5)](https://github.com/BazanJeremy/ReleaseGuard) fused deterministic quality signals into a verdict; EvalForge answers the next question up the stack: **how much can an LLM signal be trusted before letting it vote?** The sample datasets evaluate [TestScribe](https://github.com/BazanJeremy/testscribe)-style enriched bug reports — soft interop, no runtime coupling.
-
-Industry AI-test-engineering roadmaps (e.g. [ittestgroup's 2026 roadmap](https://ittestgroup.com/feuille-de-route-ai-test-engineering-2026/)) place "testing AI systems" as the terminal phase of the discipline, precisely because probabilistic, non-deterministic systems need specialized evaluation — and evaluators whose own reliability is quantified. That is this project's single differentiating claim, enforced in code: *an uncalibrated judge can never affect the verdict.*
-
-Deliberate v1 scope cuts (documented in [CLAUDE.md](CLAUDE.md)): no pairwise/A-B comparison (and with it, position-bias probes), single judge implementation behind a `Protocol`, `json_structure` rather than full JSON Schema — each a stated extension point, not an accident.
+Distribué sous [licence MIT](LICENSE).
