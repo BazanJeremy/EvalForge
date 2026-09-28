@@ -50,7 +50,8 @@ Differentiating skills vs the five earlier projects: **evaluating probabilistic 
 
 - OS: Windows, shell: PowerShell
 - Python 3.14, virtualenv in `.venv` — activate: `.\.venv\Scripts\Activate.ps1`
-- Run tests with: `python -m pytest` — **NEVER** bare `pytest`
+- Run tests with `python -m pytest`, not bare `pytest`: a bare `pytest` runs from the first
+  interpreter on PATH (the system Python on this machine), not from `.venv`, and nothing warns.
 - CI: GitHub Actions (free tier), zero API keys, no Docker
 - Console output ASCII-only (legacy Windows consoles garble non-ASCII)
 - After changing `[project.scripts]`, re-run `pip install -e .` to refresh the console-script shim
