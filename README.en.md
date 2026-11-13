@@ -139,7 +139,7 @@ Bugs caught by the project's own tests and dogfood runs are documented in [docs/
 
 A tool with a deliberately reduced scope, not a product — each cut is documented and is a stated extension point, not an accident:
 
-- 10-case golden set — a kappa over so few points is noisy; adjacent agreement is reported alongside for that reason.
+- 12-case golden set (floor: 10) — a kappa over so few points is noisy; adjacent agreement is reported alongside for that reason.
 - No pairwise/A-B comparison between models — and with it, no position-bias probes.
 - Single reference judge implementation (Anthropic) behind a `Protocol`; no judge ensembles.
 - `json_structure` (parse + required keys) rather than full JSON Schema validation.
