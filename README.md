@@ -143,7 +143,7 @@ Tout fonctionne à l'identique sans clé — le juge reste simplement hors du ve
 
 Un outil au périmètre volontairement réduit, pas un produit : chaque coupe est documentée.
 
-- Golden set de 10 cas — un kappa sur si peu de points est bruité ; l'agreement adjacent est rapporté à côté pour cette raison.
+- Golden set de 12 cas (plancher : 10) — un kappa sur si peu de points est bruité ; l'agreement adjacent est rapporté à côté pour cette raison.
 - Pas de comparaison par paires (A/B) entre modèles, donc pas de sondes de biais de position — point d'extension déclaré.
 - Un seul juge de référence (Anthropic) derrière un `Protocol` ; pas d'ensembles de juges.
 - `json_structure` (parsing + clés requises) plutôt qu'une validation JSON Schema complète.
