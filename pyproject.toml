@@ -15,7 +15,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-llm = ["anthropic>=0.40"]
+llm = ["anthropic>=0.78"]
 dev = ["pytest>=8.0", "coverage>=7.6"]
 
 [project.scripts]
