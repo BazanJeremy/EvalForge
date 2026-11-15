@@ -153,6 +153,32 @@ def test_judge_without_calibration_report_is_advisory_too():
     assert report.judge_score is None
 
 
+def test_calibration_from_another_judge_cannot_affect_the_verdict():
+    """ADR-003: a judge votes only with a calibration report it produced."""
+    other = FakeJudge(PERFECT_SCORES, name="other-judge")
+    report = evaluate_suite(
+        make_suite(), SUITE_OUTPUTS, judge=other, calibration=make_calibration()
+    )
+    assert report.verdict is Verdict.DEGRADED  # a calibrated report, but not this judge's
+    assert report.judge_score is None and report.calibration is None
+    assert report.generated_by == "system1"
+    # The grades stay visible as advisory data, as for an uncalibrated judge.
+    assert all(r.judge is not None for r in report.case_results)
+
+
+def test_calibration_mismatch_condition_names_both_judges():
+    other = FakeJudge(PERFECT_SCORES, name="other-judge")
+    report = evaluate_suite(
+        make_suite(), SUITE_OUTPUTS, judge=other, calibration=make_calibration()
+    )
+    mismatch = [c for c in report.conditions if "calibration mismatch" in c]
+    assert len(mismatch) == 1
+    assert "'fake-judge'" in mismatch[0] and "'other-judge'" in mismatch[0]
+    assert "advisory" in mismatch[0]
+    # One reason per run: the report is not "uncalibrated", it is someone else's.
+    assert not any("judge uncalibrated" in c for c in report.conditions)
+
+
 def test_blocked_cases_are_never_graded():
     suite, outputs, _ = load_scenario_by_name("scenario_fail")
     criteria = [c.name for c in suite.rubric.criteria]

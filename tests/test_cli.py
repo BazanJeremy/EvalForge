@@ -147,6 +147,23 @@ def test_calibrated_judge_lifts_the_verdict_end_to_end(tmp_path, capsys):
     assert "calibrated: kappa 0.62" in out
 
 
+def test_calibration_from_another_judge_does_not_lift_the_verdict(tmp_path, capsys):
+    """ADR-003 end to end: the same calibrated report, a judge under another name."""
+    args = write_lift_files(tmp_path)
+    calibration = tmp_path / "calibration.json"
+    calibration.write_text(json.dumps(CALIBRATION), encoding="utf-8")
+
+    def renamed_judge() -> FakeJudge:
+        return FakeJudge({"C-1": {"quality": 5}, "C-2": {"quality": 5}}, name="other-judge")
+
+    code = main(args + ["--calibration", str(calibration)], judge_provider=renamed_judge)
+    assert code == policy.EXIT_DEGRADED
+    out = capsys.readouterr().out
+    assert "calibration mismatch" in out
+    assert "advisory only" in out
+    assert out.isascii()
+
+
 def test_advisory_judge_is_labeled_in_the_signals(tmp_path, capsys):
     main(write_lift_files(tmp_path), judge_provider=perfect_judge)
     assert "advisory only" in capsys.readouterr().out
