@@ -3,13 +3,13 @@
 **LLM output quality evaluator — deterministic checks, a calibration-gated LLM judge, and meta-evaluation ("judge the judge").**
 
 [![CI](https://github.com/BazanJeremy/EvalForge/actions/workflows/ci.yml/badge.svg)](https://github.com/BazanJeremy/EvalForge/actions/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/tests-121%20passing-brightgreen?logo=pytest)](tests/)
+[![Tests](https://img.shields.io/badge/tests-124%20passing-brightgreen?logo=pytest)](tests/)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue?logo=python)](pyproject.toml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
 
 > 🇫🇷 [Version française](README.md)
 
-**Status: ✅ Complete.** 121 tests, zero API keys required, CI gated by its own canonical scenarios (see [The CI gate](#the-ci-gate-this-repo-checks-its-own-contract)).
+**Status: ✅ Complete.** 124 tests, zero API keys required, CI gated by its own canonical scenarios (see [The CI gate](#the-ci-gate-this-repo-checks-its-own-contract)).
 
 ## The problem
 
@@ -87,7 +87,7 @@ flowchart LR
 
 ## The CI gate: this repo checks its own contract
 
-There is deliberately no Docker here. EvalForge's deployment story is its own CI: every push runs the 121-test suite, then executes the **installed `evalforge` binary** on the three canonical scenarios and fails the build if any exit code deviates from its committed manifest:
+There is deliberately no Docker here. EvalForge's deployment story is its own CI: every push runs the 124-test suite, then executes the **installed `evalforge` binary** on the three canonical scenarios and fails the build if any exit code deviates from its committed manifest:
 
 ```bash
 evalforge run --suite "$dir/suite.json" --outputs "$dir/outputs.jsonl" || got=$?
@@ -104,7 +104,7 @@ cd EvalForge
 python -m venv .venv
 source .venv/bin/activate       # Windows PowerShell: .\.venv\Scripts\Activate.ps1
 pip install -e .[dev]
-python -m pytest                # 121 tests, no API key needed
+python -m pytest                # 124 tests, no API key needed
 
 # the three canonical scenarios (expected exits: 0, 2, 1)
 evalforge run --suite data/samples/scenario_pass/suite.json --outputs data/samples/scenario_pass/outputs.jsonl
@@ -122,7 +122,7 @@ evalforge calibrate --suite data/samples/golden/suite.json --outputs data/sample
 evalforge run --suite suite.json --outputs outputs.jsonl --calibration calibration.json
 ```
 
-Everything above works identically without a key — the judge simply stays out of the verdict. A calibration report goes stale when the judge model or the rubric changes: re-run `evalforge calibrate`.
+Everything above works identically without a key — the judge simply stays out of the verdict. A calibration report only speaks for the judge that produced it: when the active judge's name differs from the one recorded in the report, its grades fall back to advisory and the reason lands in the conditions ([ADR-003](docs/adr/ADR-003-calibration-bound-to-its-judge.md)). A rubric change, however, is not detected: re-run `evalforge calibrate`.
 
 ## Design decisions
 
@@ -130,6 +130,7 @@ Everything above works identically without a key — the judge simply stays out 
 |---|---|
 | [ADR-001](docs/adr/ADR-001-evaluation-model.md) | Evaluation model: three tiers, non-compensable blocking checks, calibration-gated judge |
 | [ADR-002](docs/adr/ADR-002-cli-contract.md) | CLI contract: verdict-mapped exit codes (usage errors on 3, not argparse's 2), calibration as an explicit step and durable artifact, no tuning flags |
+| [ADR-003](docs/adr/ADR-003-calibration-bound-to-its-judge.md) | A calibration report only opens the gate for the judge named in it; another judge's report leaves the judge advisory (supersedes one consequence of ADR-002) |
 
 ADR-001 also documents the build-vs-adopt decision honestly: promptfoo/deepeval were weighed and rejected *for this project* because calibration-gating the judge is not a first-class primitive there and the project's goal is demonstrating evaluation engineering from first principles — in a product team, adopting one and layering calibration on top is often the right call.
 
@@ -160,7 +161,7 @@ src/evalforge/
 data/samples/   # canonical scenarios (PASS / FAIL / DEGRADED) + human-labeled golden set
 docs/adr/       # architecture decision records
 docs/bug-evidence.md
-tests/          # 121 tests: contracts, checkers, judge parsing, metrics, verdicts, CLI
+tests/          # 124 tests: contracts, checkers, judge parsing, metrics, verdicts, CLI
 ```
 
 ## Related projects
