@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=84.2.1"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -11,12 +11,12 @@ requires-python = ">=3.12"
 license = { text = "MIT" }
 authors = [{ name = "Jeremy Bazan" }]
 dependencies = [
-    "pydantic>=2.0",
+    "pydantic>=2.14.3",
 ]
 
 [project.optional-dependencies]
-llm = ["anthropic>=0.78"]
-dev = ["pytest>=8.0", "coverage>=7.6"]
+llm = ["anthropic>=2.8.0"]
+dev = ["pytest>=9.2.0", "coverage>=7.17.2"]
 
 [project.scripts]
 evalforge = "evalforge.cli:main"
