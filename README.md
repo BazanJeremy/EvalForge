@@ -3,7 +3,7 @@
 **Quality gate pour systèmes LLM — checks déterministes, juge LLM sous calibration, et méta-évaluation qui « juge le juge ».**
 
 [![CI](https://github.com/BazanJeremy/EvalForge/actions/workflows/ci.yml/badge.svg)](https://github.com/BazanJeremy/EvalForge/actions/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/tests-121%20passing-brightgreen?logo=pytest)](tests/)
+[![Tests](https://img.shields.io/badge/tests-124%20passing-brightgreen?logo=pytest)](tests/)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue?logo=python)](pyproject.toml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
 
@@ -33,7 +33,7 @@ Conditions:
 
 Exit code `1` — une pipeline CI peut bloquer directement dessus (`0` PASS, `1` DEGRADED, `2` FAIL, `3` erreur).
 
-**Statut : complet.** 121 tests, zéro clé API requise, CI verrouillée par ses propres scénarios canoniques.
+**Statut : complet.** 124 tests, zéro clé API requise, CI verrouillée par ses propres scénarios canoniques.
 
 ## Le problème
 
@@ -110,7 +110,7 @@ cd EvalForge
 python -m venv .venv
 source .venv/bin/activate       # Windows PowerShell : .\.venv\Scripts\Activate.ps1
 pip install -e .[dev]
-python -m pytest                # 121 tests, aucune clé API requise
+python -m pytest                # 124 tests, aucune clé API requise
 
 # les trois scénarios canoniques (exit codes attendus : 0, 2, 1)
 evalforge run --suite data/samples/scenario_pass/suite.json --outputs data/samples/scenario_pass/outputs.jsonl
@@ -128,16 +128,16 @@ evalforge calibrate --suite data/samples/golden/suite.json --outputs data/sample
 evalforge run --suite suite.json --outputs outputs.jsonl --calibration calibration.json
 ```
 
-Tout fonctionne à l'identique sans clé — le juge reste simplement hors du verdict. Un rapport de calibration devient obsolète quand le modèle du juge ou la rubrique change : relancer `evalforge calibrate`.
+Tout fonctionne à l'identique sans clé — le juge reste simplement hors du verdict. Un rapport de calibration ne vaut que pour le juge qui l'a produit : si le nom du juge actif diffère de celui inscrit dans le rapport, ses notes redeviennent consultatives et la raison est tracée dans les conditions ([ADR-003](docs/adr/ADR-003-calibration-bound-to-its-judge.md)). Un changement de rubrique, lui, n'est pas détecté : relancer `evalforge calibrate`.
 
 ## Décisions de conception
 
 - **Python ≥ 3.12, Pydantic v2** pour tous les contrats de données — les invariants du verdict sont des validateurs de modèle, pas des conventions.
-- **pytest + coverage** : 121 tests (contrats, checkers, parsing du juge, métriques, verdicts de bout en bout, CLI), tous exécutables sans clé API.
+- **pytest + coverage** : 124 tests (contrats, checkers, parsing du juge, métriques, verdicts de bout en bout, CLI), tous exécutables sans clé API.
 - **`anthropic` en dépendance optionnelle** derrière un `Protocol` — les tests utilisent un `FakeJudge` scripté.
 - **Métriques sans scipy ni sklearn** : les formules (kappa de Cohen, agreements) sont petites, possédées et auditables.
 - **CI GitHub Actions zéro clé** qui exécute le binaire `evalforge` installé contre les trois scénarios canoniques et casse le build si un exit code dévie de son manifeste — le contrat d'évaluation est exécuté à chaque push, pas seulement documenté.
-- Décisions d'architecture tracées : [ADR-001](docs/adr/ADR-001-evaluation-model.md) (modèle d'évaluation), [ADR-002](docs/adr/ADR-002-cli-contract.md) (contrat CLI). Les bugs attrapés par les propres tests du projet sont documentés dans [docs/bug-evidence.md](docs/bug-evidence.md).
+- Décisions d'architecture tracées : [ADR-001](docs/adr/ADR-001-evaluation-model.md) (modèle d'évaluation), [ADR-002](docs/adr/ADR-002-cli-contract.md) (contrat CLI), [ADR-003](docs/adr/ADR-003-calibration-bound-to-its-judge.md) (une calibration ne vaut que pour son juge). Les bugs attrapés par les propres tests du projet sont documentés dans [docs/bug-evidence.md](docs/bug-evidence.md).
 
 ## Limites connues
 

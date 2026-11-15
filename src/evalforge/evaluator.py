@@ -5,6 +5,8 @@ The three-tier contract, in order:
 2. Judge scores enter the suite score only through the calibration gate —
    an uncalibrated or absent judge leaves the score deterministic-only,
    with the judge's grades kept as advisory data on the case results.
+   The gate opens only for the judge named in the calibration report
+   (ADR-003): another judge's report calibrates nothing here.
 3. FAIL requires an identifiable blocker; the score alone only chooses
    between PASS and DEGRADED.
 """
@@ -36,6 +38,7 @@ def evaluate_suite(
     (an absent output is an error, never a verdict). ``judge`` is optional;
     ``calibration`` is the judge's report on the golden set and decides
     whether its scores may affect the verdict (ADR-001 calibration gate).
+    It counts only when its ``generated_by`` equals ``judge.name`` (ADR-003).
     """
     outputs_by_id = _outputs_by_id(suite, outputs)
     conditions: list[str] = []
@@ -75,12 +78,22 @@ def evaluate_suite(
     else:
         conditions.append("judge unavailable: score is deterministic-only")
 
-    # Tier 3 gate — an uncalibrated judge can never affect the verdict.
-    judge_counted = judge_ran and calibration is not None and calibration.calibrated
-    if judge_ran and not judge_counted:
-        conditions.append(
-            "judge uncalibrated: judge scores are advisory only (ADR-001 calibration gate)"
-        )
+    # Tier 3 gate — an uncalibrated judge can never affect the verdict, and a
+    # calibration report only speaks for the judge that produced it (ADR-003).
+    judge_counted = False
+    if judge is not None and judge_ran:
+        if calibration is not None and calibration.generated_by != judge.name:
+            conditions.append(
+                f"calibration mismatch: the report was produced by "
+                f"'{calibration.generated_by}', the active judge is '{judge.name}' - "
+                "judge scores are advisory only (ADR-003)"
+            )
+        elif calibration is None or not calibration.calibrated:
+            conditions.append(
+                "judge uncalibrated: judge scores are advisory only (ADR-001 calibration gate)"
+            )
+        else:
+            judge_counted = True
 
     deterministic_score = _deterministic_score(case_results)
     judge_quality = _judge_quality(case_results) if judge_counted else None
